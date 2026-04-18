@@ -1,4 +1,5 @@
 import { getMockProducts, getMockProductByHandle } from './mockData';
+import { ShopifyProduct } from '@/types';
 
 const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
 const storefrontAccessToken = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
@@ -16,8 +17,8 @@ async function shopifyFetch<T>({ query, variables }: { query: string; variables?
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Storefront-Access-Token': storefrontAccessToken,
-    },
+      'X-Shopify-Storefront-Access-Token': storefrontAccessToken || '',
+    } as Record<string, string>,
     body: JSON.stringify({ query, variables }),
   });
 
@@ -34,11 +35,11 @@ async function shopifyFetch<T>({ query, variables }: { query: string; variables?
   return json.data;
 }
 
-export async function getProducts(first: number = 20) {
+export async function getProducts(first: number = 20): Promise<ShopifyProduct[]> {
   console.log('isConfigured:', isConfigured, 'domain:', domain, 'token:', storefrontAccessToken?.substring(0, 10));
   
   if (!isConfigured) {
-    const mock = getMockProducts().slice(0, first);
+    const mock = getMockProducts().slice(0, first) as ShopifyProduct[];
     console.log('Returning mock products:', mock.length);
     return mock;
   }
@@ -106,21 +107,21 @@ export async function getProducts(first: number = 20) {
     }
   `;
 
-  const data = await shopifyFetch<{ products: { edges: Array<{ node: unknown }> } }>({
+  const data = await shopifyFetch<{ products: { edges: Array<{ node: ShopifyProduct }> } }>({
     query,
     variables: { first },
   });
 
-  return data.products.edges.map((edge) => edge.node);
+  return data.products.edges.map((edge) => edge.node as ShopifyProduct);
 }
 
-export async function getProductByHandle(handle: string) {
+export async function getProductByHandle(handle: string): Promise<ShopifyProduct | undefined> {
   console.log('getProductByHandle called, isConfigured:', isConfigured);
   
   if (!isConfigured) {
     const mock = getMockProductByHandle(handle);
     console.log('Returning mock product:', mock?.title);
-    return mock;
+    return mock as ShopifyProduct;
   }
 
   const query = `
@@ -182,12 +183,12 @@ export async function getProductByHandle(handle: string) {
     }
   `;
 
-  const data = await shopifyFetch<{ productByHandle: unknown }>({
+  const data = await shopifyFetch<{ productByHandle: ShopifyProduct }>({
     query,
     variables: { handle },
   });
 
-  return data.productByHandle;
+  return data.productByHandle as ShopifyProduct;
 }
 
 export async function getCollections() {
