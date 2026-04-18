@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@next/swc-win32-x64-msvc": "^14.2.5",
+    "@next/swc-linux-x64-msvc": "14.2.5",
     "@shopify/hydrogen-react": "2024.4.0",
     "framer-motion": "11.3.8",
     "lucide-react": "0.424.0",
